@@ -17,7 +17,7 @@ const initializeDbAndServer = async () => {
     });
   } catch (err) {
     console.log(err);
-    process.exit(0);
+    process.exit(1);
   }
 };
 initializeDbAndServer();
@@ -28,7 +28,7 @@ app.get("/players/", async (request, response) => {
     SELECT
     *
     FROM
-    PLAYER_DETAILS;
+    player_details;
     `;
   const getAllPlayers = await db.all(getAllPlayersQuery);
   const getAllPlayersResponse = getAllPlayers.map((item) => {
@@ -103,13 +103,12 @@ app.get("/players/:playerId/matches/", async (request, response) => {
   const playerId = request.params.playerId;
   const getMatchDetailOfAPlayersQuery = `
     SELECT
-    match_details.match_id,
-    match_details.match,
-    match_details.year
+    DISTINCT match_id,
+    match,
+    year
     FROM
-    player_match_score JOIN player_details ON player_match_score.player_id= player_details.player_id
-    JOIN match_details ON match_details.match_id = player_match_score.match_id
-    WHERE player_details.player_id = ${playerId};
+    player_match_score NATURAL JOIN match_details
+    WHERE player_id = ${playerId};
     `;
   const getMatchDetailsOfAPlayer = await db.all(getMatchDetailOfAPlayersQuery);
   const getMatchDetailsOfAPlayerResponse = getMatchDetailsOfAPlayer.map(
@@ -129,11 +128,11 @@ app.get("/matches/:matchId/players/", async (request, response) => {
   const matchId = request.params.matchId;
   const getPlayersListInAMatchQuery = `
     SELECT
-    player_details.player_id,
-    player_details.player_name
+    DISTINCT player_id,
+    player_name
     FROM
-    player_match_score JOIN player_details ON player_match_score.player_id= player_details.player_id
-    WHERE player_match_score.match_id = ${matchId};
+    player_match_score NATURAL JOIN player_details
+    WHERE match_id = ${matchId};
     `;
   const getPlayersListInAMatch = await db.all(getPlayersListInAMatchQuery);
   const getPlayersListInAMatchResponse = getPlayersListInAMatch.map((item) => {
@@ -145,19 +144,19 @@ app.get("/matches/:matchId/players/", async (request, response) => {
   response.send(getPlayersListInAMatchResponse);
 });
 
-// API 6 ==> get list of players in a specific match with match id
+// API 7 ==> get list of players in a specific match with match id
 app.get("/players/:playerId/playerScores/", async (request, response) => {
   const playerId = request.params.playerId;
   const getTotalScoresOfAPlayerQuery = `
     SELECT
-    player_details.player_id,
-    player_details.player_name,
-    sum(player_match_score.score) as total_score,
-    sum(player_match_score.fours) as total_fours,
-    sum(player_match_score.sixes) as total_sixes
+    player_id,
+    player_name,
+    sum(score) as total_score,
+    sum(fours) as total_fours,
+    sum(sixes) as total_sixes
     FROM
-    player_match_score JOIN player_details ON player_match_score.player_id= player_details.player_id
-    WHERE player_match_score.player_id = ${playerId};
+    player_match_score NATURAL JOIN player_details
+    WHERE player_id = ${playerId};
     `;
   const getTotalScoresOfAPlayer = await db.get(getTotalScoresOfAPlayerQuery);
   const getTotalScoresOfAPlayerResponse = {
