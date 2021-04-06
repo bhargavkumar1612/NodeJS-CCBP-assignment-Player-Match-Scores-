@@ -1,0 +1,9 @@
+SELECT
+DISTINCT player_match_id,  
+    player_name,
+    score,
+    fours,
+    sixes
+    FROM
+    player_match_score NATURAL JOIN player_details
+    WHERE player_id = 1;

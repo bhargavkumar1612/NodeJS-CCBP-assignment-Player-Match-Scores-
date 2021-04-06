@@ -150,6 +150,7 @@ app.get("/players/:playerId/playerScores/", async (request, response) => {
   const playerId = request.params.playerId;
   const getTotalScoresOfAPlayerQuery = `
     SELECT
+DISTINCT player_match_id,  
     player_name,
     sum(score) as total_score,
     sum(fours) as total_fours,
@@ -163,8 +164,8 @@ app.get("/players/:playerId/playerScores/", async (request, response) => {
     playerId: playerId,
     playerName: getTotalScoresOfAPlayer.player_name,
     totalScore: getTotalScoresOfAPlayer.total_score,
-    totalFours: getTotalScoresOfAPlayer.total_fours,
     totalSixes: getTotalScoresOfAPlayer.total_sixes,
+    totalFours: getTotalScoresOfAPlayer.total_fours,
   };
   response.send(getTotalScoresOfAPlayerResponse);
 });
